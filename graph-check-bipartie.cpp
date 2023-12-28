@@ -24,26 +24,31 @@ input
 output
 1
 */
-#include <stdbool.h>
-#include <stdio.h>
+#include <iostream>
+#include <vector>
+#include <queue>
 
-#define MAXN 100005
+using namespace std;
 
+const int MAXN = 100005;
+vector<int> graph[MAXN];
 int color[MAXN];
-int graph[MAXN][2]; // Store each edge as a pair of vertices
 int n, m;
 
-bool dfs(int v, int c)
-{
-    color[v] = c;
-    for (int i = 0; i < m; ++i) {
-        int u = (graph[i][0] == v) ? graph[i][1] : (graph[i][1] == v) ? graph[i][0]
-                                                                      : -1;
-        if (u != -1) {
+bool bfs(int s) {
+    queue<int> q;
+    q.push(s);
+    color[s] = 0;
+
+    while (!q.empty()) {
+        int v = q.front();
+        q.pop();
+
+        for (int u : graph[v]) {
             if (color[u] == -1) {
-                if (!dfs(u, 1 - c))
-                    return false;
-            } else if (color[u] == c) {
+                color[u] = 1 - color[v];
+                q.push(u);
+            } else if (color[u] == color[v]) {
                 return false;
             }
         }
@@ -51,33 +56,32 @@ bool dfs(int v, int c)
     return true;
 }
 
-int main()
-{
-    scanf("%d %d", &n, &m);
+int main() {
+    cin >> n >> m;
 
     // Initialize colors
-    for (int i = 0; i < n; i++) {
-        color[i] = -1;
-    }
+    fill(color, color + n, -1);
 
-    // Read the edges
+    // Read the edges and build the graph
     for (int i = 0; i < m; i++) {
-        scanf("%d %d", &graph[i][0], &graph[i][1]);
-        graph[i][0]--; // Adjusting for 0-based indexing
-        graph[i][1]--;
+        int u, v;
+        cin >> u >> v;
+        --u; --v; // Adjust for 0-based indexing
+        graph[u].push_back(v);
+        graph[v].push_back(u);
     }
 
     // Check if the graph is bipartite
     bool bipartite = true;
     for (int i = 0; i < n; i++) {
         if (color[i] == -1) {
-            if (!dfs(i, 0)) {
+            if (!bfs(i)) {
                 bipartite = false;
                 break;
             }
         }
     }
 
-    printf("%d\n", bipartite ? 1 : 0);
+    cout << (bipartite ? 1 : 0) << endl;
     return 0;
 }
